@@ -16,14 +16,14 @@ export const buttonStyles = css`
         transition: all var(--transition-fast, 0.15s ease);
         font-size: 0.9rem;
         font-weight: 500;
-        min-height: 120px;
+        min-height: 100px;
         aspect-ratio: 1;
         width: 100%;
     }
 
     .control-btn svg {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         flex-shrink: 0;
         transition: transform var(--transition-fast, 0.15s ease);
     }
@@ -33,6 +33,24 @@ export const buttonStyles = css`
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 100%;
+        font-size: 0.85rem;
+    }
+
+    @media (max-width: 480px) {
+        .control-btn {
+            min-height: 70px;
+            padding: 0.5rem;
+            gap: 0.25rem;
+        }
+
+        .control-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .control-btn span {
+            font-size: 0.7rem;
+        }
     }
 
     .control-btn:hover {

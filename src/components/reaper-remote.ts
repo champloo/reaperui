@@ -38,6 +38,13 @@ export class ReaperRemote extends LitElement {
             letter-spacing: 0.05em;
         }
 
+        @media (max-width: 480px) {
+            .time-display {
+                font-size: 1.1rem;
+                padding: var(--spacing-sm, 0.75rem);
+            }
+        }
+
         .controls-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -202,6 +209,18 @@ export class ReaperRemote extends LitElement {
                         </control-button>
 
                         <control-button
+                            action="clear-all"
+                            label="Clear All"
+                            title="Select All, Delete, Go to Start"
+                            variant="discard"
+                            icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>'>
+                        </control-button>
+
+                        <control-button
                             action="select-all"
                             label="Select All"
                             title="Select All Items"
@@ -229,18 +248,6 @@ export class ReaperRemote extends LitElement {
                             icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="11 19 2 12 11 5 11 19"></polygon>
                                 <line x1="22" y1="5" x2="22" y2="19"></line>
-                            </svg>'>
-                        </control-button>
-
-                        <control-button
-                            action="clear-all"
-                            label="Clear All"
-                            title="Select All, Delete, Go to Start"
-                            variant="discard"
-                            icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="15" y1="9" x2="9" y2="15"></line>
-                                <line x1="9" y1="9" x2="15" y2="15"></line>
                             </svg>'>
                         </control-button>
                 </div>
