@@ -1,13 +1,15 @@
 # Reaper Web Remote
 
-A responsive web-based remote control interface for Reaper DAW with a clean, easily customizable UI.
+A responsive web-based remote control interface for Reaper DAW.
 
 ## Features
 
-- **Transport Controls**: Play, Pause, Stop, Record
+- **Transport Controls**: Play, Pause, Stop, Record, Abort
 - **Project Management**: Save and Discard (Undo)
+- **Time Display**: Shows current playback position
+- **Quick Actions**: Clear All (select all items, delete, go to start), Select All, Go to Start
+- **Real-time State Sync**: UI automatically reflects Reaper's transport state
 - **Responsive Design**: Works on desktop, tablet, and mobile
-- **Easy Styling**: CSS custom properties for quick theme customization
 
 ## Setup
 
@@ -21,14 +23,12 @@ A responsive web-based remote control interface for Reaper DAW with a clean, eas
 
 ### 2. Install the Remote
 
-Copy all files from this directory to your Reaper web root directory:
+Run `pnpm dist` and copy all files and directories from `dist` to the root of `reaper_web_root` directory:
 
 **Default locations:**
 - **Windows**: `C:\Users\<YourUsername>\AppData\Roaming\REAPER\reaper_www_root\`
 - **macOS**: `~/Library/Application Support/REAPER/reaper_www_root/`
 - **Linux**: `~/.config/REAPER/reaper_www_root/`
-
-Create a subdirectory (e.g., `reaper_www_root/remote/`) and place the files there.
 
 ### 3. Access the Remote
 
@@ -40,49 +40,24 @@ http://localhost:8080/remote/
 
 (Replace `8080` with your configured port and `remote` with your directory name)
 
-## Customization
-
-The UI is fully customizable through CSS custom properties in `style.css`:
-
-```css
-:root {
-    --primary-bg: #1a1a1a;        /* Main background */
-    --secondary-bg: #2a2a2a;      /* Card background */
-    --accent-color: #4a9eff;      /* Accent color */
-    --record-color: #ff4444;      /* Record button */
-    --play-color: #44ff88;        /* Play active state */
-    /* ... and more */
-}
-```
-
 ## Controls
 
+### Transport Controls
 - **Play**: Start playback
 - **Pause**: Pause playback
 - **Stop**: Stop playback
+- **Abort**: Stop playback (abort) - do not save the recording
 - **Record**: Toggle recording
-- **Save**: Save current project
-- **Discard**: Undo last action (with confirmation)
 
-## Technical Details
+### Rendering to file
+- **Save**: Renders the project to an output file
 
-The remote communicates with Reaper using HTTP requests to Reaper's built-in web interface.
+### Quick Actions
+- **Clear All**: Select all items, delete them, and go to start of track
+- **Select All**: Select all items
+- **Delete**: Deletes selected items
+- **Go to Start**: Jump to the start of track
 
-Command IDs used:
-- Play: 1007
-- Pause: 1008
-- Stop: 1016
-- Record: 1013
-- Save: 40026
-- Undo: 40029
+### Display
+- **Time Display**: Shows current playback position in format `minutes:seconds.milliseconds`
 
-## Browser Compatibility
-
-Works with all modern browsers:
-- Chrome/Edge (recommended)
-- Firefox
-- Safari
-
-## License
-
-MIT
