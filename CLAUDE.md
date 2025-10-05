@@ -58,14 +58,20 @@ When files are served from Reaper's `reaper_www_root` directory, the relative UR
 
 Each control button maps to a specific Reaper action ID:
 
-| Button   | Command ID | Reaper Action           |
-|----------|------------|-------------------------|
-| Play     | 1007       | Transport: Play         |
-| Pause    | 1008       | Transport: Pause        |
-| Stop     | 1016       | Transport: Stop         |
-| Record   | 1013       | Transport: Record       |
-| Save     | 40026      | File: Save project      |
-| Discard  | 40029      | Edit: Undo              |
+| Button       | Command ID | Reaper Action                    |
+|--------------|------------|----------------------------------|
+| Record       | 1013       | Transport: Record                |
+| Abort        | 40668      | Transport: Stop (abort)          |
+| Play         | 1007       | Transport: Play                  |
+| Pause        | 1008       | Transport: Pause                 |
+| Stop         | 1016       | Transport: Stop                  |
+| Save         | 42230      | File: Save project               |
+| Clear All    | -          | Composite: Select All + Delete + Go to Start |
+| Select All   | 40182      | Item: Select all items           |
+| Delete       | 40006      | Item: Remove items               |
+| Go to Start  | 40042      | View: Go to start of project     |
+
+**Note**: The "Clear All" button is a composite action that executes three commands in sequence via `sendMultipleCommands()`.
 
 ### UI State Management & Component Architecture
 
@@ -88,7 +94,8 @@ The application uses a modular component-based architecture with real-time state
 
 **Service Layer**:
 - `ReaperAPI` singleton handles all Reaper communication
-- Provides `sendCommand()` for executing actions
+- Provides `sendCommand()` for executing single actions
+- Provides `sendMultipleCommands()` for executing multiple actions in sequence (used by "Clear All")
 - Provides `getTransportState()` for querying transport state via `/_/TRANSPORT`
 - Provides `getCommandState()` for querying individual action states via `/_/GET/{commandId}`
 - Separates business logic from UI components
@@ -142,14 +149,18 @@ Using relative URLs (`/_/`) instead of absolute URLs means the interface works r
 ## Key Features
 
 1. **Real-time State Synchronization**: Polls Reaper every 200ms to reflect actual transport state
-2. **Reactive UI**: Lit's reactive properties automatically update the interface
-3. **Responsive Design**: Works on desktop (3-column), tablet, and mobile devices (2-column)
-4. **Uniform Button Sizing**: All buttons maintain consistent size regardless of content
-5. **Visual Feedback**: Active states for play/pause/record with animations
-6. **Confirmation Dialogs**: Prevents accidental undo operations
-7. **Easy Theming**: CSS custom properties for quick customization
-8. **Fast Development**: Vite dev server with instant HMR
-9. **Optimized Builds**: Production-ready bundles for deployment
+2. **Time Display**: Shows current playback position from Reaper
+3. **Composite Actions**: "Clear All" button executes multiple commands in sequence
+4. **Reactive UI**: Lit's reactive properties automatically update the interface
+5. **Responsive Design**: Optimized for desktop (3-column), tablet, and mobile devices (2-column)
+   - Desktop: 100px buttons with 28px icons
+   - Mobile (≤480px): 70px buttons with 20px icons and reduced padding
+6. **Uniform Button Sizing**: All buttons maintain consistent square aspect ratio
+7. **Visual Feedback**: Active states for play/pause/record with animations and color coding
+8. **No Confirmation Dialogs**: All actions execute immediately for streamlined workflow
+9. **Easy Theming**: CSS custom properties for quick customization
+10. **Fast Development**: Vite dev server with instant HMR
+11. **Optimized Builds**: Production-ready bundles for deployment
 
 ## Extending the Interface
 
@@ -216,14 +227,14 @@ Edit the CSS custom properties in `style.css`:
 
 ## Limitations
 
-- **No Transport Position Display**: Doesn't display current playback position or time (data is available via polling but not shown in UI)
-- **Basic Controls Only**: Limited to the six implemented transport/project controls
+- **No Beat/Measure Display**: Only shows time position, not beat/measure position (though data is available)
 - **Polling Overhead**: 200ms polling interval creates continuous network traffic
 - **Development Mode**: State polling fails gracefully when running on Vite dev server (only works when served from Reaper)
+- **No Undo for Composite Actions**: "Clear All" executes three separate commands without undo grouping
 
 ## Future Enhancement Ideas
 
-- Display transport position/time (data already available from polling)
+- Add beat/measure position display alongside time display
 - Include volume/pan controls for tracks
 - Add project/track selection
 - Implement keyboard shortcuts
@@ -232,6 +243,9 @@ Edit the CSS custom properties in `style.css`:
 - Add FX parameter controls
 - Add configurable poll interval
 - Implement connection status indicator
+- Add undo grouping for composite actions
+- Add render button with recent settings
+- Include loop/repeat controls
 
 ## Development Notes
 
