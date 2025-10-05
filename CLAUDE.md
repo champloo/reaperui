@@ -273,3 +273,18 @@ The refactored architecture provides:
 5. **Testability**: Services and components can be tested independently
 6. **Scalability**: Easy to add new features without modifying existing code
 7. **Developer Experience**: IntelliSense, auto-completion, and type checking
+
+## Development Rules
+
+### Testing Changes
+**IMPORTANT**: Whenever you make changes to the codebase, you MUST verify them using Chrome DevTools MCP:
+
+1. Ensure the dev server is running (`pnpm run dev`)
+2. Navigate to the application in Chrome DevTools MCP
+3. Take a snapshot to verify UI elements are present
+4. Check console messages for errors
+5. Test relevant functionality by clicking buttons/interacting with UI
+6. Verify network requests are being sent correctly
+7. Take screenshots to confirm visual changes
+
+This ensures all changes are working correctly in the browser before considering the task complete.
