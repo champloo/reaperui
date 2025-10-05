@@ -26,6 +26,6 @@ export const REAPER_COMMANDS: Record<CommandAction, number> = {
     pause: 1008,
     stop: 1016,
     record: 1013,
-    save: 40026,
-    discard: 40029
+    save: 42230,
+    discard: 40668
 };
