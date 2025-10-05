@@ -7,6 +7,7 @@
   packages = with pkgs; [
     git
     just
+    chromium
   ];
 
   languages.javascript = {
