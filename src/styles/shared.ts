@@ -11,16 +11,28 @@ export const buttonStyles = css`
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: var(--spacing-sm, 0.5rem);
         transition: all var(--transition-fast, 0.15s ease);
         font-size: 0.9rem;
         font-weight: 500;
+        min-height: 120px;
+        aspect-ratio: 1;
+        width: 100%;
     }
 
     .control-btn svg {
         width: 32px;
         height: 32px;
+        flex-shrink: 0;
         transition: transform var(--transition-fast, 0.15s ease);
+    }
+
+    .control-btn span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
     }
 
     .control-btn:hover {

@@ -24,38 +24,15 @@ export class ReaperRemote extends LitElement {
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-xl, 2rem);
-            padding-bottom: var(--spacing-lg, 1.5rem);
-            border-bottom: 2px solid var(--border-color, #3a3a3a);
-        }
-
-        h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, var(--accent-color, #4a9eff), #6ab4ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
         .controls-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: var(--spacing-md, 1rem);
-            margin-bottom: var(--spacing-xl, 2rem);
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .container {
                 padding: var(--spacing-md, 1rem);
-            }
-
-            h1 {
-                font-size: 1.5rem;
             }
 
             .controls-grid {
@@ -63,9 +40,13 @@ export class ReaperRemote extends LitElement {
             }
         }
 
-        @media (max-width: 400px) {
+        @media (max-width: 480px) {
+            .container {
+                padding: var(--spacing-sm, 0.75rem);
+            }
+
             .controls-grid {
-                grid-template-columns: 1fr;
+                gap: var(--spacing-sm, 0.75rem);
             }
         }
     `;
@@ -138,12 +119,7 @@ export class ReaperRemote extends LitElement {
     render() {
         return html`
             <div class="container">
-                <header>
-                    <h1>Reaper Remote</h1>
-                </header>
-
-                <main>
-                    <div class="controls-grid" @button-click=${this.handleButtonClick}>
+                <div class="controls-grid" @button-click=${this.handleButtonClick}>
                         <control-button
                             action="play"
                             label="Play"
@@ -206,8 +182,7 @@ export class ReaperRemote extends LitElement {
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                             </svg>'>
                         </control-button>
-                    </div>
-                </main>
+                </div>
             </div>
         `;
     }

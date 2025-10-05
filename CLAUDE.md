@@ -69,26 +69,40 @@ Each control button maps to a specific Reaper action ID:
 
 ### UI State Management & Component Architecture
 
-The application uses a modular component-based architecture:
+The application uses a modular component-based architecture with real-time state synchronization:
 
 **ReaperRemote** (Main Component):
 - Uses `@state` decorator for internal state (playActive, pauseActive, recordActive)
+- Polls Reaper's transport state every 200ms to stay synchronized
 - Handles command execution through the `ReaperAPI` service
 - Manages user confirmations for destructive actions
 - Delegates rendering to child `ControlButton` components
+- Implements lifecycle methods (`connectedCallback`, `disconnectedCallback`) for polling management
 
 **ControlButton** (Reusable Component):
 - Accepts configuration via properties (action, label, title, icon, variant)
 - Emits custom events (`button-click`) for parent handling
 - Uses `classMap` directive for clean conditional class handling
 - Encapsulates button-specific styling and behavior
+- Uniform button sizing via `aspect-ratio: 1` and `min-height: 120px`
 
 **Service Layer**:
 - `ReaperAPI` singleton handles all Reaper communication
+- Provides `sendCommand()` for executing actions
+- Provides `getTransportState()` for querying transport state via `/_/TRANSPORT`
+- Provides `getCommandState()` for querying individual action states via `/_/GET/{commandId}`
 - Separates business logic from UI components
 - Provides centralized error handling
 
-Button states are purely client-side and provide immediate visual feedback without waiting for Reaper's response. Lit's reactive properties (`@state`) automatically update the UI when state changes.
+**State Synchronization**:
+The UI polls Reaper's transport state every 200ms, mapping playstate values:
+- 0 = Stopped
+- 1 = Playing
+- 2 = Paused
+- 5 = Recording
+- 6 = Record paused
+
+This ensures the UI accurately reflects Reaper's state even when controls are triggered directly in Reaper. Lit's reactive properties (`@state`) automatically update the UI when state changes.
 
 ## Design Decisions
 
@@ -117,7 +131,7 @@ Button states are purely client-side and provide immediate visual feedback witho
 All colors, spacing, and transitions are defined as CSS variables in `:root`, making it trivial to customize the theme without touching the core styles. Component-specific styles are encapsulated within the Lit component's `static styles`.
 
 ### Responsive Grid Layout
-The control buttons use CSS Grid with `auto-fit` and `minmax()` for automatic responsive behavior across devices without media queries (media queries only adjust grid columns at breakpoints).
+The control buttons use CSS Grid with a 3-column layout on desktop, 2-column layout on tablet/mobile (≤768px), with optimized spacing on smaller screens (≤480px). Buttons maintain uniform sizing via `aspect-ratio: 1` for a clean, consistent appearance.
 
 ### Relative URLs
 Using relative URLs (`/_/`) instead of absolute URLs means the interface works regardless of:
@@ -127,13 +141,15 @@ Using relative URLs (`/_/`) instead of absolute URLs means the interface works r
 
 ## Key Features
 
-1. **Reactive UI**: Lit's reactive properties automatically update the interface
-2. **Responsive Design**: Works on desktop, tablet, and mobile devices
-3. **Visual Feedback**: Active states for play/pause/record with animations
-4. **Confirmation Dialogs**: Prevents accidental undo operations
-5. **Easy Theming**: CSS custom properties for quick customization
-6. **Fast Development**: Vite dev server with instant HMR
-7. **Optimized Builds**: Production-ready bundles for deployment
+1. **Real-time State Synchronization**: Polls Reaper every 200ms to reflect actual transport state
+2. **Reactive UI**: Lit's reactive properties automatically update the interface
+3. **Responsive Design**: Works on desktop (3-column), tablet, and mobile devices (2-column)
+4. **Uniform Button Sizing**: All buttons maintain consistent size regardless of content
+5. **Visual Feedback**: Active states for play/pause/record with animations
+6. **Confirmation Dialogs**: Prevents accidental undo operations
+7. **Easy Theming**: CSS custom properties for quick customization
+8. **Fast Development**: Vite dev server with instant HMR
+9. **Optimized Builds**: Production-ready bundles for deployment
 
 ## Extending the Interface
 
@@ -166,12 +182,7 @@ private newActive = false;
 </control-button>
 ```
 
-4. **Update state logic** in `updateButtonState()` method:
-```typescript
-case 'new':
-    this.newActive = !this.newActive;
-    break;
-```
+Note: State is now automatically synchronized via polling, so manual state updates are no longer needed. The polling mechanism in `updateStateFromReaper()` handles all state updates based on Reaper's transport state.
 
 ### Creating New Components
 
@@ -205,20 +216,22 @@ Edit the CSS custom properties in `style.css`:
 
 ## Limitations
 
-- **One-way Communication**: The interface sends commands but doesn't receive state updates from Reaper
-- **No Transport Position**: Doesn't display current playback position or time
+- **No Transport Position Display**: Doesn't display current playback position or time (data is available via polling but not shown in UI)
 - **Basic Controls Only**: Limited to the six implemented transport/project controls
-- **Client-side State**: Button states are visual only and don't reflect actual Reaper state
+- **Polling Overhead**: 200ms polling interval creates continuous network traffic
+- **Development Mode**: State polling fails gracefully when running on Vite dev server (only works when served from Reaper)
 
 ## Future Enhancement Ideas
 
-- Add transport position display using Reaper's status endpoint
+- Display transport position/time (data already available from polling)
 - Include volume/pan controls for tracks
 - Add project/track selection
 - Implement keyboard shortcuts
-- Add WebSocket support for real-time state updates
+- Optimize polling (e.g., use WebSocket for real-time updates instead of polling)
 - Include marker navigation
 - Add FX parameter controls
+- Add configurable poll interval
+- Implement connection status indicator
 
 ## Development Notes
 
