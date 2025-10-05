@@ -13,6 +13,14 @@ export interface ControlButtonConfig {
     variant?: 'default' | 'record' | 'discard';
 }
 
+export interface TransportState {
+    playstate: number;
+    position: number;
+    isRepeat: boolean;
+    positionString: string;
+    positionBeats: string;
+}
+
 export const REAPER_COMMANDS: Record<CommandAction, number> = {
     play: 1007,
     pause: 1008,

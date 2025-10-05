@@ -6,6 +6,8 @@ import './control-button';
 
 @customElement('reaper-remote')
 export class ReaperRemote extends LitElement {
+    private pollInterval?: number;
+    private readonly POLL_INTERVAL_MS = 200; // Poll every 200ms
     static styles = css`
         :host {
             display: block;
@@ -77,6 +79,45 @@ export class ReaperRemote extends LitElement {
     @state()
     private recordActive = false;
 
+    connectedCallback() {
+        super.connectedCallback();
+        this.startPolling();
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.stopPolling();
+    }
+
+    private startPolling(): void {
+        this.pollInterval = window.setInterval(() => {
+            this.updateStateFromReaper();
+        }, this.POLL_INTERVAL_MS);
+
+        // Initial state fetch
+        this.updateStateFromReaper();
+    }
+
+    private stopPolling(): void {
+        if (this.pollInterval !== undefined) {
+            window.clearInterval(this.pollInterval);
+            this.pollInterval = undefined;
+        }
+    }
+
+    private async updateStateFromReaper(): Promise<void> {
+        try {
+            const state = await reaperAPI.getTransportState();
+
+            // Playstate values: 0=stopped, 1=playing, 2=paused, 5=recording, 6=record paused
+            this.playActive = state.playstate === 1 || state.playstate === 5;
+            this.pauseActive = state.playstate === 2 || state.playstate === 6;
+            this.recordActive = state.playstate === 5 || state.playstate === 6;
+        } catch (error) {
+            // Silently fail - expected when not running through Reaper's web interface
+        }
+    }
+
     private async handleButtonClick(e: CustomEvent) {
         const { action } = e.detail as { action: CommandAction };
 
@@ -88,29 +129,9 @@ export class ReaperRemote extends LitElement {
 
         try {
             await reaperAPI.sendCommand(action);
-            this.updateButtonState(action);
+            // State will be updated by the polling mechanism
         } catch (error) {
             console.error('Command error:', error);
-        }
-    }
-
-    private updateButtonState(action: CommandAction): void {
-        switch (action) {
-            case 'play':
-                this.playActive = true;
-                this.pauseActive = false;
-                break;
-            case 'pause':
-                this.playActive = false;
-                this.pauseActive = true;
-                break;
-            case 'stop':
-                this.playActive = false;
-                this.pauseActive = false;
-                break;
-            case 'record':
-                this.recordActive = !this.recordActive;
-                break;
         }
     }
 
