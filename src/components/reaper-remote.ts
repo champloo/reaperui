@@ -24,6 +24,20 @@ export class ReaperRemote extends LitElement {
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
+        .time-display {
+            background: var(--btn-bg, #2a2a2a);
+            border: 2px solid var(--border-color, #3a3a3a);
+            border-radius: var(--radius-md, 8px);
+            padding: var(--spacing-md, 1rem);
+            text-align: center;
+            margin-bottom: var(--spacing-md, 1rem);
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent-color, #4a9eff);
+            letter-spacing: 0.05em;
+        }
+
         .controls-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -60,6 +74,9 @@ export class ReaperRemote extends LitElement {
     @state()
     private recordActive = false;
 
+    @state()
+    private timePosition = '0:00.000';
+
     connectedCallback() {
         super.connectedCallback();
         this.startPolling();
@@ -94,6 +111,7 @@ export class ReaperRemote extends LitElement {
             this.playActive = state.playstate === 1 || state.playstate === 5;
             this.pauseActive = state.playstate === 2 || state.playstate === 6;
             this.recordActive = state.playstate === 5 || state.playstate === 6;
+            this.timePosition = state.positionString;
         } catch (error) {
             // Silently fail - expected when not running through Reaper's web interface
         }
@@ -102,14 +120,13 @@ export class ReaperRemote extends LitElement {
     private async handleButtonClick(e: CustomEvent) {
         const { action } = e.detail as { action: CommandAction };
 
-        if (action === 'discard') {
-            if (!confirm('Are you sure you want to undo recent changes?')) {
-                return;
-            }
-        }
-
         try {
-            await reaperAPI.sendCommand(action);
+            if (action === 'clear-all') {
+                // Execute select-all, delete, then go-to-start in sequence
+                await reaperAPI.sendMultipleCommands(['select-all', 'delete', 'go-to-start']);
+            } else {
+                await reaperAPI.sendCommand(action);
+            }
             // State will be updated by the polling mechanism
         } catch (error) {
             console.error('Command error:', error);
@@ -119,7 +136,30 @@ export class ReaperRemote extends LitElement {
     render() {
         return html`
             <div class="container">
+                <div class="time-display">${this.timePosition}</div>
                 <div class="controls-grid" @button-click=${this.handleButtonClick}>
+                        <control-button
+                            action="record"
+                            label="Record"
+                            title="Record"
+                            variant="record"
+                            .active=${this.recordActive}
+                            icon='<svg viewBox="0 0 24 24" fill="currentColor">
+                                <circle cx="12" cy="12" r="8"></circle>
+                            </svg>'>
+                        </control-button>
+
+                        <control-button
+                            action="abort"
+                            label="Abort"
+                            title="Abort"
+                            variant="discard"
+                            icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>'>
+                        </control-button>
+
                         <control-button
                             action="play"
                             label="Play"
@@ -151,17 +191,6 @@ export class ReaperRemote extends LitElement {
                         </control-button>
 
                         <control-button
-                            action="record"
-                            label="Record"
-                            title="Record"
-                            variant="record"
-                            .active=${this.recordActive}
-                            icon='<svg viewBox="0 0 24 24" fill="currentColor">
-                                <circle cx="12" cy="12" r="8"></circle>
-                            </svg>'>
-                        </control-button>
-
-                        <control-button
                             action="save"
                             label="Save"
                             title="Save Project"
@@ -173,13 +202,45 @@ export class ReaperRemote extends LitElement {
                         </control-button>
 
                         <control-button
-                            action="discard"
-                            label="Discard"
-                            title="Discard Changes"
+                            action="select-all"
+                            label="Select All"
+                            title="Select All Items"
+                            icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <path d="M9 11l3 3 6-6"></path>
+                            </svg>'>
+                        </control-button>
+
+                        <control-button
+                            action="delete"
+                            label="Delete"
+                            title="Delete Selected Items"
                             variant="discard"
                             icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>'>
+                        </control-button>
+
+                        <control-button
+                            action="go-to-start"
+                            label="Go to Start"
+                            title="Go to Project Start"
+                            icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="11 19 2 12 11 5 11 19"></polygon>
+                                <line x1="22" y1="5" x2="22" y2="19"></line>
+                            </svg>'>
+                        </control-button>
+
+                        <control-button
+                            action="clear-all"
+                            label="Clear All"
+                            title="Select All, Delete, Go to Start"
+                            variant="discard"
+                            icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
                             </svg>'>
                         </control-button>
                 </div>

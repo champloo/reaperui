@@ -1,4 +1,4 @@
-export type CommandAction = 'play' | 'pause' | 'stop' | 'record' | 'save' | 'discard';
+export type CommandAction = 'play' | 'pause' | 'stop' | 'record' | 'save' | 'abort' | 'select-all' | 'delete' | 'go-to-start' | 'clear-all';
 
 export interface ReaperCommand {
     action: CommandAction;
@@ -27,5 +27,9 @@ export const REAPER_COMMANDS: Record<CommandAction, number> = {
     stop: 1016,
     record: 1013,
     save: 42230,
-    discard: 40668
+    abort: 40668,
+    'select-all': 40182,
+    delete: 40006,
+    'go-to-start': 40042,
+    'clear-all': 0 // Composite action, handled separately
 };

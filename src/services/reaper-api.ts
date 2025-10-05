@@ -19,6 +19,17 @@ export class ReaperAPI {
     }
 
     /**
+     * Sends multiple commands in sequence
+     * @param actions - Array of command actions to execute
+     * @throws Error if any fetch request fails
+     */
+    async sendMultipleCommands(actions: CommandAction[]): Promise<void> {
+        for (const action of actions) {
+            await this.sendCommand(action);
+        }
+    }
+
+    /**
      * Queries the current transport state from Reaper
      * @returns TransportState object with playstate, position, etc.
      * @throws Error if the fetch request fails or parsing fails
