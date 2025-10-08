@@ -2,6 +2,35 @@ import type { CommandAction, TransportState } from '../types/index';
 import { REAPER_COMMANDS } from '../types/index';
 
 export class ReaperAPI {
+    private onlineListeners: Set<(online: boolean) => void> = new Set();
+    private _isOnline = true;
+
+    /**
+     * Subscribe to online/offline state changes
+     */
+    onConnectionChange(callback: (online: boolean) => void): () => void {
+        this.onlineListeners.add(callback);
+        // Return unsubscribe function
+        return () => this.onlineListeners.delete(callback);
+    }
+
+    /**
+     * Get current online state
+     */
+    get isOnline(): boolean {
+        return this._isOnline;
+    }
+
+    /**
+     * Update online state and notify listeners
+     */
+    private setOnlineState(online: boolean): void {
+        if (this._isOnline !== online) {
+            this._isOnline = online;
+            this.onlineListeners.forEach(listener => listener(online));
+        }
+    }
+
     /**
      * Sends a command to Reaper via its HTTP web interface
      * @param action - The command action to execute
@@ -12,8 +41,10 @@ export class ReaperAPI {
 
         try {
             await fetch(`/_/${commandId}`, { method: 'GET' });
+            this.setOnlineState(true);
         } catch (error) {
             console.error(`Failed to send command '${action}' (ID: ${commandId}):`, error);
+            this.setOnlineState(false);
             throw error;
         }
     }
@@ -35,28 +66,35 @@ export class ReaperAPI {
      * @throws Error if the fetch request fails or parsing fails
      */
     async getTransportState(): Promise<TransportState> {
-        const response = await fetch('/_/TRANSPORT', { method: 'GET' });
+        try {
+            const response = await fetch('/_/TRANSPORT', { method: 'GET' });
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const text = await response.text();
+
+            // Parse response: TRANSPORT \t playstate \t position \t isRepeat \t posString \t posBeats
+            const parts = text.split('\t');
+
+            if (parts.length < 6 || parts[0] !== 'TRANSPORT') {
+                throw new Error('Invalid transport state response');
+            }
+
+            this.setOnlineState(true);
+
+            return {
+                playstate: parseInt(parts[1], 10),
+                position: parseFloat(parts[2]),
+                isRepeat: parts[3] === '1',
+                positionString: parts[4],
+                positionBeats: parts[5]
+            };
+        } catch (error) {
+            this.setOnlineState(false);
+            throw error;
         }
-
-        const text = await response.text();
-
-        // Parse response: TRANSPORT \t playstate \t position \t isRepeat \t posString \t posBeats
-        const parts = text.split('\t');
-
-        if (parts.length < 6 || parts[0] !== 'TRANSPORT') {
-            throw new Error('Invalid transport state response');
-        }
-
-        return {
-            playstate: parseInt(parts[1], 10),
-            position: parseFloat(parts[2]),
-            isRepeat: parts[3] === '1',
-            positionString: parts[4],
-            positionBeats: parts[5]
-        };
     }
 
     /**

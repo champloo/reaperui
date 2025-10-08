@@ -70,6 +70,52 @@ export class ReaperRemote extends LitElement {
                 gap: var(--spacing-sm, 0.75rem);
             }
         }
+
+        .offline-banner {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            padding: var(--spacing-sm, 0.75rem) var(--spacing-md, 1rem);
+            border-radius: var(--radius-md, 8px);
+            margin-bottom: var(--spacing-md, 1rem);
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .offline-banner svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 480px) {
+            .offline-banner {
+                font-size: 0.85rem;
+                padding: var(--spacing-xs, 0.5rem) var(--spacing-sm, 0.75rem);
+            }
+
+            .offline-banner svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
     `;
 
     @state()
@@ -84,14 +130,32 @@ export class ReaperRemote extends LitElement {
     @state()
     private timePosition = '0:00.000';
 
+    @state()
+    private isOnline = true;
+
+    private unsubscribeConnection?: () => void;
+
     connectedCallback() {
         super.connectedCallback();
         this.startPolling();
+
+        // Subscribe to connection state changes
+        this.unsubscribeConnection = reaperAPI.onConnectionChange((online) => {
+            this.isOnline = online;
+        });
+
+        // Set initial state
+        this.isOnline = reaperAPI.isOnline;
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this.stopPolling();
+
+        // Unsubscribe from connection changes
+        if (this.unsubscribeConnection) {
+            this.unsubscribeConnection();
+        }
     }
 
     private startPolling(): void {
@@ -143,6 +207,16 @@ export class ReaperRemote extends LitElement {
     render() {
         return html`
             <div class="container">
+                ${!this.isOnline ? html`
+                    <div class="offline-banner">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        <span>Offline - Not connected to Reaper</span>
+                    </div>
+                ` : ''}
                 <div class="time-display">${this.timePosition}</div>
                 <div class="controls-grid" @button-click=${this.handleButtonClick}>
                         <control-button
